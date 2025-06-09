@@ -1,0 +1,544 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-dark: #1a1a1a;
+    --secondary-dark: #2d2d2d;
+    --accent-dark: #3a3a3a;
+    --border-color: #404040;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --accent-blue: #007acc;
+    --accent-green: #28a745;
+    --accent-red: #dc3545;
+    --accent-orange: #fd7e14;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--primary-dark);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    /* Use flexbox to center content vertically/horizontally */
+    flex-direction: column;
+}
+
+.app-container {
+    display: grid;
+    grid-template-areas:
+        "header header header"
+        "toolbar canvas properties"
+        "layers canvas properties";
+    grid-template-columns: 60px 1fr 280px;
+    grid-template-rows: 50px 1fr auto;
+    height: calc(100vh - 24px);
+    /* Account for status bar height */
+}
+
+/* Header */
+.header {
+    grid-area: header;
+    background: var(--secondary-dark);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.logo {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.header-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.header-btn:hover {
+    background: var(--accent-dark);
+    color: var(--text-primary);
+}
+
+.header-btn.primary {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: white;
+}
+
+/* Toolbar */
+.toolbar {
+    grid-area: toolbar;
+    background: var(--secondary-dark);
+    border-right: 1px solid var(--border-color);
+    padding: 15px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.tool-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    width: 100%;
+    align-items: center;
+}
+
+.tool-group:last-child {
+    border-bottom: none;
+}
+
+.tool-btn {
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.tool-btn:hover {
+    background: var(--accent-dark);
+    color: var(--text-primary);
+}
+
+.tool-btn.active {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+}
+
+.tool-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary-dark);
+    border: 1px solid var(--border-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+.tool-btn:hover::after {
+    opacity: 1;
+}
+
+/* Canvas Area */
+.canvas-area {
+    grid-area: canvas;
+    background: var(--accent-dark);
+    display: flex;
+    align-items: center;
+    /* Center canvas vertically */
+    justify-content: center;
+    /* Center canvas horizontally */
+    position: relative;
+    overflow: hidden;
+    /* Important for bounding pan/zoom */
+    cursor: default;
+    /* Default cursor, tools change it */
+}
+
+.canvas-wrapper {
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    /* Add transitions for smooth pan/zoom */
+    transition: transform 0.05s ease-out;
+    transform-origin: 0 0;
+    /* Important for consistent zoom/pan */
+    will-change: transform;
+    /* Optimize for animation */
+}
+
+#canvas {
+    display: block;
+    border-radius: 8px;
+    /* Cursors set by JS based on active tool */
+}
+
+.canvas-overlay {
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+/* Properties Panel */
+.properties {
+    grid-area: properties;
+    background: var(--secondary-dark);
+    border-left: 1px solid var(--border-color);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.property-section {
+    margin-bottom: 25px;
+}
+
+.property-section h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.property-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.property-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.property-input {
+    background: var(--accent-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    width: 60px;
+    text-align: center;
+}
+
+.property-input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.color-picker {
+    width: 40px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: none;
+}
+
+.slider-container {
+    flex: 1;
+    margin-left: 15px;
+}
+
+.slider {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--accent-dark);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.brush-preview {
+    width: 80px;
+    height: 40px;
+    background: var(--accent-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.brush-dot {
+    background: var(--text-primary);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.blend-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.blend-btn {
+    background: var(--accent-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.blend-btn:hover,
+.blend-btn.active {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+}
+
+/* Layers Panel */
+.layers {
+    grid-area: layers;
+    background: var(--secondary-dark);
+    border-right: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
+    height: 200px;
+    padding: 15px;
+}
+
+.layers h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.layer-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background: var(--accent-dark);
+    border-radius: 4px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.layer-item:hover {
+    background: var(--border-color);
+}
+
+.layer-item.active {
+    background: var(--accent-blue);
+}
+
+.layer-preview {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 2px;
+    margin-right: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.layer-name {
+    flex: 1;
+    font-size: 12px;
+}
+
+.layer-opacity {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+/* Status Bar */
+.status-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 24px;
+    background: var(--primary-dark);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    justify-content: space-between;
+    opacity: 0.8;
+    /* Increased opacity for better readability */
+    z-index: 1001;
+    /* Ensure it's above other elements */
+}
+
+.status-left,
+.status-right {
+    display: flex;
+    gap: 15px;
+}
+
+/* Keyboard Shortcuts */
+.shortcuts {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    background: var(--secondary-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.shortcuts.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    min-width: 180px;
+}
+
+.shortcut-key {
+    background: var(--accent-dark);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+
+/* Tool specific cursors */
+.canvas-area.cursor-brush {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path fill="currentColor" d="M12 10l-2 2h4l-2-2z"/></svg>') 12 12, crosshair;
+}
+
+.canvas-area.cursor-pencil {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M14.06 9.02l.92.92L5.92 18H5v-.92l9.06-9.06m3.61-4.7l-1.08 1.08 2.06 2.06 1.08-1.08c.39-.39.39-1.02 0-1.41l-1.41-1.41c-.39-.39-1.02-.39-1.41 0zM17.81 4.7l-1.08 1.08 2.06 2.06 1.08-1.08c.39-.39.39-1.02 0-1.41l-1.41-1.41c-.39-.39-1.02-.39-1.41 0z"/></svg>') 18 6, default;
+}
+
+.canvas-area.cursor-eraser {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17.8 8.08l-5.06-5.06c-.78-.78-2.05-.78-2.83 0L3.13 10.8c-.78.78-.78 2.05 0 2.83l5.06 5.06c.78.78 2.05.78 2.83 0l6.78-6.78c.78-.78.78-2.05 0-2.83zM6.34 11.21L12 5.56l2.12 2.12L8.46 13.34z"/></svg>') 6 18, default;
+}
+
+.canvas-area.cursor-line,
+.canvas-area.cursor-rectangle,
+.canvas-area.cursor-circle {
+    cursor: crosshair;
+}
+
+.canvas-area.cursor-eyedropper {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.03 14.93c-.41.41-.95.64-1.54.64-.59 0-1.13-.23-1.54-.64-.82-.82-.82-2.15 0-2.97l5.25-5.25c.82-.82 2.15-.82 2.97 0 .82.82.82 2.15 0 2.97l-5.25 5.25zm-.71-.71l4.54-4.54c.41-.41.41-1.07 0-1.48-.41-.41-1.07-.41-1.48 0l-4.54 4.54c-.41.41-.41 1.07 0 1.48.41.41 1.07.41 1.48 0z"/></svg>') 12 12, default;
+}
+
+.canvas-area.cursor-bucket {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm-1 16H8v-2h3v2zm4-2h-3v2h3v-2zm-1-4h-3v2h3v-2zm4-2h-3v2h3v-2zm-1-4h-3v2h3v-2zm4-2h-3v2h3v-2zM7 7h10v10H7V7z"/></svg>') 12 12, default;
+}
+
+.canvas-area.cursor-zoom-in {
+    cursor: zoom-in;
+}
+
+.canvas-area.cursor-zoom-out {
+    cursor: zoom-out;
+}
+
+.canvas-area.cursor-pan {
+    cursor: grab;
+}
+
+.canvas-area.cursor-pan.grabbing {
+    cursor: grabbing;
+}
+
+
+@media (max-width: 1024px) {
+    .app-container {
+        grid-template-columns: 50px 1fr 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        grid-template-areas:
+            "header header"
+            "canvas canvas"
+            "toolbar properties";
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 50px 1fr auto;
+        /* auto for properties height */
+        height: calc(100vh - 24px);
+    }
+
+    .toolbar {
+        flex-direction: row;
+        padding: 8px;
+        overflow-x: auto;
+    }
+
+    .layers {
+        display: none;
+    }
+
+    .properties {
+        min-height: 250px;
+        /* Ensure properties panel has some height */
+    }
+}

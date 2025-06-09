@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator</title>
+    <link rel="stylesheet" href="ai.style.css">
+</head>
+
+<body>
+    <a href="canvas.html" class="back-button">← Back to Canvas</a>
+
+    <div class="container">
+        <h2>AI Image Generator</h2>
+
+        <div class="input-group">
+            <label for="promptInput">Enter your image prompt:</label>
+            <textarea id="promptInput" placeholder="e.g., A fluffy cat wearing a crown sitting on a futuristic spaceship, digital art"></textarea>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn primary" id="generateImageBtn">Generate Image</button>
+        </div>
+
+        <div class="image-display" id="imageDisplay">
+            <div class="loading-spinner" id="loadingSpinner"></div>
+            <img id="generatedImage" src="" alt="Generated Image" style="display: none;">
+            <p id="placeholderText">Your generated image will appear here.</p>
+        </div>
+        <p class="error-message" id="errorMessage"></p>
+    </div>
+
+    <script src="ai.script.js"></script>
+</body>
+
+</html>

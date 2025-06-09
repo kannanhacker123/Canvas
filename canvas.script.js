@@ -24,9 +24,6 @@ let zoomLevel = 1.0; // 1.0 = 100%
 let isPanning = false;
 let panStartX, panStartY; // Mouse position when pan started
 
-document.getElementById('aiGenerateBtn').addEventListener('click', () => {
-    window.location.href = 'ai_image_generator.html'; // Navigate to the new page
-}); // Redirect to AI image generator page
 
 
 // Initialize canvas
